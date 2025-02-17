@@ -10,7 +10,6 @@ Output: 3
 Explanation: 
 In this example the rook is able to capture all the pawns.
 '''
-
 class Solution(object):
     def numRookCaptures(self, board):
         """
