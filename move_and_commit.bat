@@ -45,12 +45,23 @@ if !errorlevel! equ 0 (
     )
 )
 
-REM Initialize counter for backdating
-set /a "COUNT=0"
+REM Check if source directory exists
+if not exist "%SOURCE_DIR%" (
+    echo ERROR: Source directory "%SOURCE_DIR%" does not exist.
+    exit /b 1
+)
+
+REM Enhanced debugging for source directory and folders
+echo Checking source directory: "%SOURCE_DIR%"
+dir "%SOURCE_DIR%" /a
 
 REM Process each folder containing LeetCode solutions (e.g., 1-100q, 100-200q, etc.)
+echo Searching for folders matching "%SOURCE_DIR%\*-*q"...
 for %%D in ("%SOURCE_DIR%\*-*q") do (
-    echo Processing folder: "%%D"
+    echo Found folder: "%%D"
+    echo Checking for .py files in "%%D"...
+    dir "%%D\*.py" /a
+
     for %%F in ("%%D\*.py") do (
         set /a "COUNT+=1"
         set "FILENAME=%%~nxF"
@@ -66,6 +77,10 @@ for %%D in ("%SOURCE_DIR%\*-*q") do (
 
         REM Copy the file to the repository directory
         copy "%%F" "%REPO_DIR%\!FILENAME!" >nul
+        if !errorlevel! neq 0 (
+            echo ERROR: Failed to copy !FILENAME! to %REPO_DIR%. Check permissions or path.
+            exit /b !errorlevel!
+        )
 
         REM Generate backdated timestamp using PowerShell
         for /f "tokens=*" %%A in ('powershell -Command "[DateTime]::ParseExact(\\\"%START_DATE%\\\", \\\"yyyy-MM-dd\\\", $null).AddDays(-!COUNT!).ToString(\\\"MMM dd, yyyy\\\")"') do set "HUMAN_DATE=%%A"
@@ -96,5 +111,11 @@ for %%D in ("%SOURCE_DIR%\*-*q") do (
     )
 )
 
-echo All files processed, committed, and pushed with backdated timestamps.
+if !COUNT! equ 0 (
+    echo WARNING: No LeetCode solution files (.py) were found or processed. Check the source directory, folder structure, and file visibility.
+    echo Verify folder names match *-*q (e.g., 1-100q, 100-200q) and contain .py files.
+    exit /b 1
+)
+
+echo All files processed, committed, and pushed with backdated timestamps. Total files processed: !COUNT!
 endlocal
