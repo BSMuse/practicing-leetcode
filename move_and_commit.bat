@@ -68,11 +68,13 @@ for %%D in ("%SOURCE_DIR%\*-*q") do (
         REM Extract problem number from filename (e.g., 03.py -> 3)
         set "PROBLEM_NUMBER=%%~nF"  REM Get filename without extension
         REM Remove leading zeros if needed
+        set "PROBLEM_NUMBER_TEMP=!PROBLEM_NUMBER!"
         :remove_leading_zeros
-        if "!PROBLEM_NUMBER:~0,1!"=="0" (
-            set "PROBLEM_NUMBER=!PROBLEM_NUMBER:~1!"
+        if "!PROBLEM_NUMBER_TEMP:~0,1!"=="0" (
+            set "PROBLEM_NUMBER_TEMP=!PROBLEM_NUMBER_TEMP:~1!"
             goto remove_leading_zeros
         )
+        set "PROBLEM_NUMBER=!PROBLEM_NUMBER_TEMP!"
         echo Copied !FILENAME! from "%%D" to %REPO_DIR%
 
         REM Copy the file to the repository directory
